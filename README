@@ -1,0 +1,43 @@
+Basically, contructor of CRUD statmenets with SQL.
+
+*SAMPLE USAGE*
+
+$queryBuilder = new DbQueryBuilder();
+# INSERT:
+$queryBuilder->insert('mydatabase.mytable', array('username' => 'Nemoden', 'age' => 25));
+// INSERT INTO `mydatabase`.`mytable` (`username`, `age`) VALUES (:username, :age)
+$queryBuilder->getBindParams();
+// array(':username' => 'Nemoden', ':age' => 25)
+
+We can add ON DUPLICATE KEY UPDATE statement on the end of our INSERT statmenet:
+$queryBuilder->onDuplicate(array('cnt' => new DbExpression('cnt+1'));
+
+# UPDATE:
+$queryBuilder->update('mydatabase.mytable', 
+                      array('age' => 26), 
+                      array('conditions' => 'username = :username'))
+             ->bindParams(array(':username' => 'Nemoden'));
+// UPDATE `mydatabase`.`mytable` SET `age` = :age WHERE username = :username 
+// note that username does not uses backticks! It's because it is set explicitly in condition
+$queryBuilder->getBindParams();
+// array(':age' => 26, ':username' => 'Nemoden')
+Placeholder age was added automatically, - this is how update method works - it strives to normalize everything it can.
+In case of username, we had to add it by hand since DbCriteria can not deal with strings parsing and fetching placeholders
+and corellating corresponding values to them. If it were true, we had to do some extra-work to set up conditions.
+
+DELETE and SELECT work in the similar way, you can figure out how to SELECT everything from `mydatabase`.`mytable`?
+$queryBuilder->select('mydatabase.mytable');
+
+You can add criteria whenever you want:
+$queryBuilder->addCriteria($criteria);
+
+And criteria is either an array or instance of DbCriteria:
+$criteria = array(
+  'conditions' => 'age = 25',
+  'having' => 'salary > 10000',
+  'limit' => 10,
+);
+Behind the scenes, DbQueryBuilder::addCriteria feed this array to DbCriteria to get an instance.
+
+
+Pretty simple, huh?
